@@ -1,0 +1,120 @@
+---
+title: "URC Data"
+author: "Camren Allen"
+date: "2025-02-02"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(car)
+library(rstatix)
+library(ggpubr)
+library(ggplot2)
+library(psych)
+library(dplyr)
+library(lmerTest)
+```
+
+```{r}
+df <- read.csv('/Users/joshuawei/Downloads/VICTR Lab/Stereotype Threat Analysis/AP378_FULL_Data_Jan.csv')
+
+df2 <- read.csv('/Users/joshuawei/Downloads/VICTR Lab/Stereotype Threat Analysis/R Code/both.csv')
+
+
+```
+
+```{r}
+df$Cond <- as.factor(df$Cond)
+
+df$Sex <- as.factor(df$Sex)
+```
+
+```{r}
+# Split the dataframe by 'Sex'
+#df_split <- split(df, df$Sex)
+
+# Access subsets
+#df_male <- df_split$"0"
+#df_female <- df_split$"1"
+```
+
+
+```{r}
+table(df$Cond)
+table(df$Sex)
+
+```
+
+```{r}
+
+# Convert df$Sex to match df2$ID format
+df$ID_formatted <- paste0(df$ID...1, ifelse(df$Sex == 1, "F", "M"))
+
+# Merge using the formatted ID
+merged_df <- merge(df2, df, by.x = "ID", by.y = "ID_formatted")
+
+# View the merged dataframe
+length(unique(merged_df$ID))
+
+```
+
+
+```{r}
+library(nlme)
+library(splines)
+```
+
+
+```{r}
+lme_fit_x <- lme( X.axis ~ bs( Seconds )*Cond.x*Gender,
+
+data = merged_df,
+random = ~ 1 | ID...1,
+correlation = corAR1( form = ~ 1 | ID...1 )
+)
+```
+
+
+```{r}
+lme_fit_y <- lme( Y.axis ~ bs( Seconds )*Cond.x*Gender,
+
+data = merged_df,
+random = ~ 1 | ID...1,
+correlation = corAR1( form = ~ 1 | ID...1 )
+)
+```
+
+
+```{r}
+lme_fit_z <- lme( Z.axis ~ bs( Seconds )*Cond.x*Gender,
+
+data = merged_df,
+random = ~ 1 | ID...1,
+correlation = corAR1( form = ~ 1 | ID...1 )
+)
+```
+
+
+```{r}
+summary(lme_fit_z)
+```
+
+
+```{r}
+summary(lme_fit_y)
+```
+
+
+```{r}
+summary(lme_fit_x)
+```
+
+
