@@ -1,0 +1,380 @@
+---
+title: "Stereotype Graph - Both Genders"
+author: "Joshua Wei"
+date: "2024-10-17"
+output: pdf_document
+---
+
+```{r}
+#Women's Ankle Monitor(b) Data
+
+library(ggplot2)
+library(dplyr)
+
+AP378 = read.csv("/Users/joshuawei/Downloads/VICTR Lab/Stereotype Threat Analysis/AP378 Test Data/AP378_b_data.csv")
+
+secs_df = read.csv("/Users/joshuawei/Downloads/VICTR Lab/Stereotype Threat Analysis/AP378 Test Data/AP378b_sec_data.csv")
+secs_df = na.omit(secs_df)
+secs_df = secs_df %>%
+  filter(Observed.Sec > Real.Sec) %>%
+  select("ID", "Real.Sec")
+
+
+AP378$ID = as.numeric(gsub("[^0-9]", "", AP378$ID)) #change the ID to a regular number
+
+
+females = AP378 %>%
+  left_join(secs_df, by = "ID") %>%  # Join to get the Real.Sec column
+  group_by(ID) %>%
+  filter(row_number() <= Real.Sec) %>%  # Filter rows based on Real.Sec
+  ungroup() %>%
+  select(-Real.Sec)
+
+females$ID = paste0(females$ID, "F")
+
+masterfile_f = read.csv("/Users/joshuawei/Downloads/VICTR Lab/Stereotype Threat Analysis/AP378 Test Data/AP378_Female_Bruce.csv")
+
+masterfile_f = masterfile_f %>%
+  select("ID...1", "Cond") %>%
+  rename(ID = "ID...1")
+
+masterfile_f$ID = paste0(masterfile_f$ID, "F")
+
+females = left_join(females, masterfile_f, by = "ID")
+
+females
+
+write.csv(females, "females.csv")
+```
+
+```{r}
+#Mens's Ankle Monitor(b) Data
+
+PA378 = read.csv("/Users/joshuawei/Downloads/VICTR Lab/Stereotype Threat Analysis/PA378 Test Data/PA378_b_data.csv")
+
+secs_df = read.csv("/Users/joshuawei/Downloads/VICTR Lab/Stereotype Threat Analysis/PA378 Test Data/PA378b_sec_data.csv")
+secs_df = na.omit(secs_df)
+secs_df = secs_df %>%
+  filter(Observed.Sec > Real.Sec) %>%
+  select("ID", "Real.Sec")
+
+
+PA378$ID = as.numeric(gsub("[^0-9]", "", PA378$ID)) #change the ID to a regular number
+
+
+males = PA378 %>%
+  left_join(secs_df, by = "ID") %>%  # Join to get the Real.Sec column
+  group_by(ID) %>%
+  filter(row_number() <= Real.Sec) %>%  # Filter rows based on Real.Sec
+  ungroup() %>%
+  select(-Real.Sec)
+
+males$ID = paste0(males$ID, "M")
+
+masterfile_m = read.csv("/Users/joshuawei/Downloads/VICTR Lab/Stereotype Threat Analysis/PA378 Test Data/PA378_Male_Bruce.csv")
+
+masterfile_m = masterfile_m %>%
+  select("ID...1", "Cond") %>%
+  rename(ID = "ID...1")
+
+masterfile_m$ID = paste0(masterfile_m$ID, "M")
+
+males = left_join(males, masterfile_m, by = "ID")
+
+males
+
+write.csv(males, "males.csv")
+```
+
+```{r}
+#data frame with both male and female data alongside corresponding ID and Conditions
+
+both_df = rbind(females, males)
+
+both_df$Gender = ifelse(grepl("F$", both_df$ID), "Female", "Male")
+
+both_df
+
+write.csv(both_df, "both.csv")
+```
+
+```{r}
+# THREAT
+
+bruce_levels = c(540, 720,	900,	1080,	1260,	1440,	1620,	1800)
+
+#X AXIS
+threat_df = both_df %>% #mean of both gender data by second by gender
+  filter(Cond == "Threat") %>%
+  group_by(Seconds, Gender) %>%
+  summarise(mean = mean(X.axis),
+            .groups = "drop")
+
+unique_ids_summary = both_df %>% #how many unique IDs per condition per gender
+  filter(Cond == "Threat") %>% 
+  group_by(Gender) %>%
+  summarise(unique_IDs = n_distinct(ID),
+            .groups = "drop")
+
+threat_df = threat_df %>% #adding gender into the data frame as well as labeling it alongside gender
+  left_join(unique_ids_summary, by = "Gender") %>%
+  mutate(Gender = paste(Gender, "(n =", unique_IDs, ")"))
+
+ggplot(threat_df, mapping = aes(x = Seconds, y = mean, color = Gender)) +
+  geom_line() +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = "Threat Condition Level, X-axis") +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted")
+
+
+#Y AXIS
+threat_df = both_df %>% #mean of both gender data by second by gender
+  filter(Cond == "Threat") %>%
+  group_by(Seconds, Gender) %>%
+  summarise(mean = mean(Y.axis),
+            .groups = "drop")
+
+unique_ids_summary = both_df %>% #how many unique IDs per condition per gender
+  filter(Cond == "Threat") %>%
+  group_by(Gender) %>%
+  summarise(unique_IDs = n_distinct(ID),
+            .groups = "drop")
+
+threat_df = threat_df %>% #adding gender into the data frame as well as labeling it alongside gender
+  left_join(unique_ids_summary, by = "Gender") %>%
+  mutate(Gender = paste(Gender, "(n =", unique_IDs, ")"))
+
+ggplot(threat_df, mapping = aes(x = Seconds, y = mean, color = Gender)) +
+  geom_line() +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = "Threat Condition Level, Y-axis") +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted")
+
+
+#Z AXIS
+threat_df = both_df %>% #mean of both gender data by second by gender
+  filter(Cond == "Threat") %>%
+  group_by(Seconds, Gender) %>%
+  summarise(mean = mean(Z.axis),
+            .groups = "drop")
+
+unique_ids_summary = both_df %>% #how many unique IDs per condition per gender
+  filter(Cond == "Threat") %>%
+  group_by(Gender) %>%
+  summarise(unique_IDs = n_distinct(ID),
+            .groups = "drop")
+
+threat_df = threat_df %>% #adding gender into the data frame as well as labeling it alongside gender
+  left_join(unique_ids_summary, by = "Gender") %>%
+  mutate(Gender = paste(Gender, "(n =", unique_IDs, ")"))
+
+ggplot(threat_df, mapping = aes(x = Seconds, y = mean, color = Gender)) +
+  geom_line() +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = "Threat Condition Level, Z-axis") +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted")
+```
+
+
+```{r}
+# CONTROL
+
+bruce_levels = c(540, 720,	900,	1080,	1260,	1440,	1620,	1800)
+
+#X AXIS
+control_df = both_df %>% #mean of both gender data by second by gender
+  filter(Cond == "Control") %>%
+  group_by(Seconds, Gender) %>%
+  summarise(mean = mean(X.axis),
+            .groups = "drop")
+
+unique_ids_summary = both_df %>% #how many unique IDs per condition per gender
+  filter(Cond == "Control") %>%
+  group_by(Gender) %>%
+  summarise(unique_IDs = n_distinct(ID),
+            .groups = "drop")
+
+control_df = control_df %>% #adding gender into the data frame as well as labeling it alongside gender
+  left_join(unique_ids_summary, by = "Gender") %>%
+  mutate(Gender = paste(Gender, "(n =", unique_IDs, ")"))
+
+ggplot(control_df, mapping = aes(x = Seconds, y = mean, color = Gender)) +
+  geom_line() +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = "Control Condition Level, X-axis") +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted")
+
+
+#Y AXIS
+control_df = both_df %>% #mean of both gender data by second by gender
+  filter(Cond == "Control") %>%
+  group_by(Seconds, Gender) %>%
+  summarise(mean = mean(Y.axis),
+            .groups = "drop")
+
+unique_ids_summary = both_df %>% #how many unique IDs per condition per gender
+  filter(Cond == "Control") %>%
+  group_by(Gender) %>%
+  summarise(unique_IDs = n_distinct(ID),
+            .groups = "drop")
+
+control_df = control_df %>% #adding gender into the data frame as well as labeling it alongside gender
+  left_join(unique_ids_summary, by = "Gender") %>%
+  mutate(Gender = paste(Gender, "(n =", unique_IDs, ")"))
+
+ggplot(control_df, mapping = aes(x = Seconds, y = mean, color = Gender)) +
+  geom_line() +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = "Control Condition Level, Y-axis") +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted")
+
+
+#Z AXIS
+control_df = both_df %>% #mean of both gender data by second by gender
+  filter(Cond == "Control") %>%
+  group_by(Seconds, Gender) %>%
+  summarise(mean = mean(Z.axis),
+            .groups = "drop")
+
+unique_ids_summary = both_df %>% #how many unique IDs per condition per gender
+  filter(Cond == "Control") %>%
+  group_by(Gender) %>%
+  summarise(unique_IDs = n_distinct(ID),
+            .groups = "drop")
+
+control_df = control_df %>% #adding gender into the data frame as well as labeling it alongside gender
+  left_join(unique_ids_summary, by = "Gender") %>%
+  mutate(Gender = paste(Gender, "(n =", unique_IDs, ")"))
+
+ggplot(control_df, mapping = aes(x = Seconds, y = mean, color = Gender)) +
+  geom_line() +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = "Control Condition Level, Z-axis") +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted")
+```
+
+```{r}
+# LIFT
+
+bruce_levels = c(540, 720,	900,	1080,	1260,	1440,	1620,	1800)
+
+#X AXIS
+lift_df = both_df %>% #mean of both gender data by second by gender
+  filter(Cond == "Lift") %>%
+  group_by(Seconds, Gender) %>%
+  summarise(mean = mean(X.axis),
+            .groups = "drop")
+
+unique_ids_summary = both_df %>% #how many unique IDs per condition per gender
+  filter(Cond == "Lift") %>%
+  group_by(Gender) %>%
+  summarise(unique_IDs = n_distinct(ID),
+            .groups = "drop")
+
+lift_df = lift_df %>% #adding gender into the data frame as well as labeling it alongside gender
+  left_join(unique_ids_summary, by = "Gender") %>%
+  mutate(Gender = paste(Gender, "(n =", unique_IDs, ")"))
+
+ggplot(lift_df, mapping = aes(x = Seconds, y = mean, color = Gender)) +
+  geom_line() +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = "Lift Condition Level, X-axis") +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted")
+
+
+#Y AXIS
+lift_df = both_df %>% #mean of both gender data by second by gender
+  filter(Cond == "Lift") %>%
+  group_by(Seconds, Gender) %>%
+  summarise(mean = mean(Y.axis),
+            .groups = "drop")
+
+unique_ids_summary = both_df %>% #how many unique IDs per condition per gender
+  filter(Cond == "Lift") %>%
+  group_by(Gender) %>%
+  summarise(unique_IDs = n_distinct(ID),
+            .groups = "drop")
+
+lift_df = lift_df %>% #adding gender into the data frame as well as labeling it alongside gender
+  left_join(unique_ids_summary, by = "Gender") %>%
+  mutate(Gender = paste(Gender, "(n =", unique_IDs, ")"))
+
+ggplot(lift_df, mapping = aes(x = Seconds, y = mean, color = Gender)) +
+  geom_line() +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = "Lift Condition Level, Y-axis") +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted")
+
+
+#Z AXIS
+lift_df = both_df %>% #mean of both gender data by second by gender
+  filter(Cond == "Lift") %>%
+  group_by(Seconds, Gender) %>%
+  summarise(mean = mean(Z.axis),
+            .groups = "drop")
+
+unique_ids_summary = both_df %>% #how many unique IDs per condition per gender
+  filter(Cond == "Lift") %>%
+  group_by(Gender) %>%
+  summarise(unique_IDs = n_distinct(ID),
+            .groups = "drop")
+
+lift_df = lift_df %>% #adding gender into the data frame as well as labeling it alongside gender
+  left_join(unique_ids_summary, by = "Gender") %>%
+  mutate(Gender = paste(Gender, "(n =", unique_IDs, ")"))
+
+ggplot(lift_df, mapping = aes(x = Seconds, y = mean, color = Gender)) +
+  geom_line() +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = "Lift Condition Level, Z-axis") +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted")
+
+```
+
+
+
+```{r}
+condition_colors <- c("Threat-Female" = "blue", 
+                      "Threat-Male" = "red", 
+                      "Lift-Female" = "green", 
+                      "Lift-Male" = "purple", 
+                      "Control-Female" = "orange", 
+                      "Control-Male" = "cyan")  
+
+both_df <- na.omit(both_df) %>%
+  mutate(CondGender = paste(Cond, Gender, sep = "-"))
+
+#Bruce Level 6
+both_df %>%
+  group_by(Seconds, Gender, Cond) %>%
+  summarise(mean = mean(X.axis),
+            CondGender = CondGender)  %>%
+  ggplot(mapping = aes(x = Seconds, y = mean, color = CondGender)) +
+  geom_line() +
+  scale_x_continuous(
+    limits = c(1260,1440),
+    breaks = c(1260,1320,1380,1440)) +
+  scale_color_manual(values = condition_colors)
+
+both_df
+```
+
+

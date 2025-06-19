@@ -1,0 +1,650 @@
+---
+title: "VICTR Lab - Stereotype Threat Graph, Male"
+author: "Joshua Wei"
+date: "2024-10-14"
+output: pdf_document
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+#Mens's Ankle Monitor(b) Data
+
+PA378 = read.csv("/Users/joshuawei/Downloads/VICTR Lab/Stereotype Threat Analysis/PA378 Test Data/PA378_b_data.csv")
+
+secs_df = read.csv("/Users/joshuawei/Downloads/VICTR Lab/Stereotype Threat Analysis/PA378 Test Data/PA378b_sec_data.csv")
+secs_df = na.omit(secs_df)
+secs_df = secs_df %>%
+  filter(Observed.Sec > Real.Sec) %>%
+  select("ID", "Real.Sec")
+
+
+PA378$ID = as.numeric(gsub("[^0-9]", "", PA378$ID)) #change the ID to a regular number
+
+
+main_df = PA378 %>%
+  left_join(secs_df, by = "ID") %>%  # Join to get the Real.Sec column
+  group_by(ID) %>%
+  filter(row_number() <= Real.Sec) %>%  # Filter rows based on Real.Sec
+  ungroup() %>%
+  select(-Real.Sec)
+
+main_df
+
+write.csv(main_df, file = "main.csv")
+
+#Gives me a data with the right amount of seconds
+```
+
+```{r}
+masterfile = read.csv("/Users/joshuawei/Downloads/VICTR Lab/Stereotype Threat Analysis/PA378 Test Data/PA378_Male_Bruce.csv")
+
+masterfile <- masterfile %>%
+  select("ID...1", "Cond") %>%
+  rename(ID = "ID...1") 
+
+everything_df = left_join(main_df, masterfile, by= "ID")
+
+#Adds the Conditions into the dataset per ID
+
+
+
+```
+
+
+```{r}
+#X axis
+
+bruce_levels = c(540, 720,	900,	1080,	1260,	1440,	1620,	1800)
+
+
+summary_df = everything_df %>%
+  group_by(Seconds, Cond) %>%
+  summarise(mean = mean(X.axis),
+            sd = sd(X.axis),
+            .groups = "drop") 
+summary_df
+
+ggplot(summary_df) +
+  geom_line(aes(x = Seconds, y = mean), color = "blue") +
+  geom_line(aes(x = Seconds, y = mean + sd), color = "red") + #one sd above the mean
+  geom_line(aes(x = Seconds, y = mean - sd), color = "pink") + #one sd below the mean
+  labs(title = "Mean and Standard Deviation over Time",
+       x = "Seconds",
+       y = "X-axis Values") +
+  theme_minimal() +
+  facet_wrap(~Cond) +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(min(summary_df$Seconds), max(summary_df$Seconds)),
+    breaks = bruce_levels) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+ggplot(summary_df) +
+  geom_line(aes(x = Seconds, y = mean), color = "blue") +
+  geom_line(aes(x = Seconds, y = mean + sd), color = "red") + #one sd above the mean
+  geom_line(aes(x = Seconds, y = mean - sd), color = "pink") + #one sd below the mean
+  labs(title = "Mean and Standard Deviation over Time",
+       x = "Seconds",
+       y = "X-axis Values") +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(min(summary_df$Seconds), max(summary_df$Seconds)),
+    breaks = bruce_levels) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+```
+
+
+```{r}
+#Y axis
+
+bruce_levels = c(540, 720,	900,	1080,	1260,	1440,	1620,	1800)
+
+
+summary_df = everything_df %>%
+  group_by(Seconds, Cond) %>%
+  summarise(mean = mean(Y.axis),
+            sd = sd(Y.axis),
+            .groups = "drop") 
+
+ggplot(summary_df) +
+  geom_line(aes(x = Seconds, y = mean), color = "blue") +
+  geom_line(aes(x = Seconds, y = mean + sd), color = "red") + #one sd above the mean
+  geom_line(aes(x = Seconds, y = mean - sd), color = "pink") + #one sd below the mean
+  labs(title = "Mean and Standard Deviation over Time",
+       x = "Seconds",
+       y = "Y-axis Values") +
+  theme_minimal() +
+  facet_wrap(~Cond) +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(min(summary_df$Seconds), max(summary_df$Seconds)),
+    breaks = bruce_levels) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+ggplot(summary_df) +
+  geom_line(aes(x = Seconds, y = mean), color = "blue") +
+  geom_line(aes(x = Seconds, y = mean + sd), color = "red") + #one sd above the mean
+  geom_line(aes(x = Seconds, y = mean - sd), color = "pink") + #one sd below the mean
+  labs(title = "Mean and Standard Deviation over Time",
+       x = "Seconds",
+       y = "Y-axis Values") +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(min(summary_df$Seconds), max(summary_df$Seconds)),
+    breaks = bruce_levels) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+
+
+```{r}
+#Z axis
+
+bruce_levels = c(540, 720,	900,	1080,	1260,	1440,	1620,	1800)
+
+
+summary_df = everything_df %>%
+  group_by(Seconds, Cond) %>%
+  summarise(mean = mean(Z.axis),
+            sd = sd(Z.axis),
+            .groups = "drop") 
+
+ggplot(summary_df) +
+  geom_line(aes(x = Seconds, y = mean), color = "blue") +
+  geom_line(aes(x = Seconds, y = mean + sd), color = "red") + #one sd above the mean
+  geom_line(aes(x = Seconds, y = mean - sd), color = "pink") + #one sd below the mean
+  labs(title = "Mean and Standard Deviation over Time",
+       x = "Seconds",
+       y = "Z-axis Values") +
+  theme_minimal() +
+  facet_wrap(~Cond) +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(min(summary_df$Seconds), max(summary_df$Seconds)),
+    breaks = bruce_levels) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+
+
+
+ggplot(summary_df) +
+  geom_line(aes(x = Seconds, y = mean), color = "blue") +
+  geom_line(aes(x = Seconds, y = mean + sd), color = "red") + #one sd above the mean
+  geom_line(aes(x = Seconds, y = mean - sd), color = "pink") + #one sd below the mean
+  labs(title = "Mean and Standard Deviation over Time",
+       x = "Seconds",
+       y = "Z-axis Values") +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(min(summary_df$Seconds), max(summary_df$Seconds)),
+    breaks = bruce_levels) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+
+
+
+```{r}
+#X Graph
+
+everything_df %>%
+  ggplot(aes(x = Seconds, y = X.axis)) +
+  geom_line(position = position_jitter(width = 0.2), alpha = 0.2, color = "#FFB3BA") +
+  geom_smooth(se = TRUE, linetype = "solid", color = "#FF677D") + 
+  facet_wrap(~Cond) + 
+  labs(title = "Scatter Plot of X.axis by Seconds",
+       x = "Seconds",
+       y = "X.axis") +
+  theme_minimal()
+
+
+#Y Graph
+
+everything_df %>%
+  ggplot(aes(x = Seconds, y = Y.axis)) +
+  geom_point(position = position_jitter(width = 0.2), alpha = 0.2, color = "#FFB3BA") +
+  geom_smooth(se = TRUE, linetype = "solid", color = "#FF677D") + 
+  facet_wrap(~Cond) + 
+  labs(title = "Scatter Plot of Y.axis by Seconds",
+       x = "Seconds",
+       y = "Y.axis") +
+  theme_minimal()
+
+
+
+#Z Graph
+
+everything_df %>%
+  ggplot(aes(x = Seconds, y = Z.axis)) +
+  geom_point(position = position_jitter(width = 0.2), alpha = 0.2, color = "#FFB3BA") +
+  geom_smooth(se = TRUE, linetype = "solid", color = "#FF677D") + 
+  facet_wrap(~Cond) + 
+  labs(title = "Scatter Plot of Z.axis by Seconds",
+       x = "Seconds",
+       y = "Z.axis") +
+  theme_minimal()
+```
+
+
+```{r}
+#X-AXIS
+
+
+
+condition_colors = c("Control" = "blue", "Lift" = "green", "Threat" = "red")
+
+mean_df = everything_df %>%
+  filter(Cond != "") %>%
+  group_by(Seconds, Cond) %>%
+  summarise(mean = mean(X.axis),
+            .groups = "drop") 
+
+
+unique_counts = function(seconds_range) { #function to give me total amount of people in each graph on title
+  everything_df %>%
+    filter(seconds_range[1] <= Seconds, Seconds <= seconds_range[2]) %>%
+    summarise(unique_ids = n_distinct(ID)) %>%
+    pull(unique_ids)
+}
+
+unique_ids_labels <- function(start_seconds, end_seconds) { #amount of people per condition as a graph label
+  everything_df %>%
+    filter(Seconds >= start_seconds & Seconds <= end_seconds) %>%
+    group_by(Cond) %>%
+    summarise(unique_IDs = n_distinct(ID),
+              .groups = "drop") %>%
+    mutate(label = paste(Cond, "(n =", unique_IDs, ")")) %>%
+    pull(label)
+}
+
+
+#Bruce 1
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("X axis - Bruce Level 1, n = ",unique_counts(c(0,540)))) +
+  theme_minimal() +
+  scale_y_continuous(limits = c(0,200)) +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(0,540),
+    breaks = c(0,60,120,180,240,300,360,420,480,540)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(0,540))
+
+#Bruce 2
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("X axis - Bruce Level 2, n = ",unique_counts(c(540,720)))) +
+  theme_minimal() +
+  scale_y_continuous(limits = c(0,200)) +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(540,720),
+    breaks = c(540,600,660,720)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(540,720))
+
+#Bruce 3
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("X axis - Bruce Level 3, n = ",unique_counts(c(720,900)))) +
+  theme_minimal() +
+  scale_y_continuous(limits = c(100,300)) +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(720, 900),
+    breaks = c(720,780,840,900)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(720,900))
+
+#Bruce 4
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("X axis - Bruce Level 4, n = ",unique_counts(c(900,1080)))) +
+  theme_minimal() +
+  scale_y_continuous(limits = c(200,400)) +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(900,1080),
+    breaks = c(900,960,1020,1080)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(900,1080))
+
+#Bruce 5
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("X axis - Bruce Level 5, n = ",unique_counts(c(1080,1260)))) +
+  theme_minimal() +
+  scale_y_continuous(limits = c(250,450)) +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(1080,1260),
+    breaks = c(1080,1140,1200,1260)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(1080,1260))
+
+#Bruce 6
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("X axis - Bruce Level 6, n = ",unique_counts(c(1260,1440)))) +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(1260,1440),
+    breaks = c(1260,1320,1380,1440)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(1260,1440))
+
+
+#Bruce 7
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("X axis - Bruce Level 7, n = ",unique_counts(c(1440,1620)))) +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(1440,1620),
+    breaks = c(1440,1500,1560,1620)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(1440,1620))
+
+#Bruce 8
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("X axis - Bruce Level 8, n = ",unique_counts(c(1620,1800)))) +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(1620,1800),
+    breaks = c(1620,1680,1740,1800)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(1620,1800))
+```
+
+
+```{r}
+#Y-AXIS
+
+
+mean_df = everything_df %>%
+  filter(Cond != "") %>%
+  group_by(Seconds, Cond) %>%
+  summarise(mean = mean(Y.axis),
+            .groups = "drop") 
+
+
+#Bruce 1
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("Y axis - Bruce Level 1, n = ",unique_counts(c(0,540)))) +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(0,540),
+    breaks = c(0,60,120,180,240,300,360,420,480,540)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(0,540))
+
+#Bruce 2
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("Y axis - Bruce Level 2, n = ",unique_counts(c(540,720)))) +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(540,720),
+    breaks = c(540,600,660,720)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(540,720))
+
+#Bruce 3
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("Y axis - Bruce Level 3, n = ",unique_counts(c(720,900)))) +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(720, 900),
+    breaks = c(720,780,840,900)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(720,900))
+
+#Bruce 4
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("Y axis - Bruce Level 4, n = ",unique_counts(c(900,1080)))) +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(900,1080),
+    breaks = c(900,960,1020,1080)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(900,1080))
+
+#Bruce 5
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("Y axis - Bruce Level 5, n = ",unique_counts(c(1080,1260)))) +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(1080,1260),
+    breaks = c(1080,1140,1200,1260)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(1080,1260))
+
+#Bruce 6
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("Y axis - Bruce Level 6, n = ",unique_counts(c(1260,1440)))) +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(1260,1440),
+    breaks = c(1260,1320,1380,1440)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(1260,1440))
+
+
+#Bruce 7
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("X axis - Bruce Level 7, n = ",unique_counts(c(1440,1620)))) +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(1440,1620),
+    breaks = c(1440,1500,1560,1620)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(1440,1620))
+
+
+
+#Bruce 8
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("Y axis - Bruce Level 8, n = ",unique_counts(c(1620,1800)))) +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(1620,1800),
+    breaks = c(1620,1680,1740,1800)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(1620,1800))
+
+```
+
+
+```{r}
+#Z-AXIS
+
+
+mean_df = everything_df %>%
+  group_by(Seconds, Cond) %>%
+  summarise(mean = mean(Z.axis),
+            .groups = "drop") 
+
+
+#Bruce 1
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("Z axis - Bruce Level 1, n = ",unique_counts(c(0,540)))) +
+  theme_minimal() +
+  scale_y_continuous(limits = c(0,100)) +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(0,540),
+    breaks = c(0,60,120,180,240,300,360,420,480,540)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(0,540))
+
+#Bruce 2
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("Z axis - Bruce Level 2, n = ",unique_counts(c(540,720)))) +
+  theme_minimal() +
+  scale_y_continuous(limits = c(0,100)) +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(540,720),
+    breaks = c(540,600,660,720)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(540,720))
+
+#Bruce 3
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("Z axis - Bruce Level 3, n = ",unique_counts(c(720,900)))) +
+  theme_minimal() +
+  scale_y_continuous(limits = c(0,100)) +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(720, 900),
+    breaks = c(720,780,840,900)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(720,900))
+
+#Bruce 4
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("Z axis - Bruce Level 4, n = ",unique_counts(c(900,1080)))) +
+  theme_minimal() +
+  scale_y_continuous(limits = c(50,150)) +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(900,1080),
+    breaks = c(900,960,1020,1080)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(900,1080))
+
+#Bruce 5
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("Z axis - Bruce Level 5, n = ",unique_counts(c(1080,1260)))) +
+  theme_minimal() +
+  scale_y_continuous(limits = c(50,150)) +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(1080,1260),
+    breaks = c(1080,1140,1200,1260)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(1080,1260))
+
+#Bruce 6
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("Z axis - Bruce Level 6, n = ",unique_counts(c(1260,1440)))) +
+  theme_minimal() +
+  scale_y_continuous(limits = c(50,200)) +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(1260,1440),
+    breaks = c(1260,1320,1380,1440)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(1260,1440))
+
+
+#Bruce 7
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("Z axis - Bruce Level 7, n = ",unique_counts(c(1440,1620)))) +
+  theme_minimal() +
+  scale_y_continuous(limits = c(50,250)) +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(1440,1620),
+    breaks = c(1440,1500,1560,1620)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(1440,1620))
+#Bruce 8
+ggplot(mean_df, mapping = aes(x = Seconds, y = mean, color = Cond)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = "Seconds",
+       y = "Mean",
+       title = paste("Z axis - Bruce Level 8, n = ",unique_counts(c(1620,1800)))) +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") +
+  scale_x_continuous(
+    limits = c(1620,1800),
+    breaks = c(1620,1680,1740,1800)) +
+  scale_color_manual(values = condition_colors,
+                     labels = unique_ids_labels(1620,1800))
+```

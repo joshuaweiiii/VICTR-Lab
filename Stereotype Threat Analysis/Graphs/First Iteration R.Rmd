@@ -1,0 +1,235 @@
+---
+title: "VICTR Lab - Stereotype Threat Graph"
+author: "Joshua Wei"
+date: "2024-10-04"
+output: pdf_document
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+#Women's Ankle Monitor(b) Data
+
+AP378 = read.csv("/Users/joshuawei/Downloads/VICTR Lab/Stereotype Threat Analysis/AP378 Test Data/AP378_b_data.csv")
+
+secs_df = read.csv("/Users/joshuawei/Downloads/VICTR Lab/Stereotype Threat Analysis/AP378 Test Data/AP378b_sec_data.csv")
+secs_df = na.omit(secs_df)
+secs_df = secs_df %>%
+  filter(Observed.Sec > Real.Sec) %>%
+  select("ID", "Real.Sec")
+
+
+AP378$ID = as.numeric(gsub("[^0-9]", "", AP378$ID)) #change the ID to a regular number
+
+
+main_df = AP378 %>%
+  left_join(secs_df, by = "ID") %>%  # Join to get the Real.Sec column
+  group_by(ID) %>%
+  filter(row_number() <= Real.Sec) %>%  # Filter rows based on Real.Sec
+  ungroup() %>%
+  select(-Real.Sec)
+
+main_df
+
+write.csv(main_df, file = "main.csv")
+
+#Gives me a data with the right amount of seconds
+```
+
+```{r}
+masterfile = read.csv("/Users/joshuawei/Downloads/VICTR Lab/Stereotype Threat Analysis/AP378 Test Data/AP378_Female_Bruce.csv")
+
+masterfile <- masterfile %>%
+  select("ID...1", "Cond") %>%
+  rename(ID = "ID...1") 
+
+everything_df = left_join(main_df, masterfile, by= "ID")
+
+#Adds the Conditions into the dataset per ID
+
+everything_df %>%
+  filter(Seconds >= 1440) %>%
+  group_by(ID,Cond) %>%
+  summarise(n = n())
+#4
+
+everything_df %>%
+  filter(Seconds >= 1260) %>%
+  group_by(ID,Cond) %>%
+  summarise(n = n())
+#29
+
+write.csv(everything_df, file = '/Users/joshuawei/Downloads/VICTR Lab/Stereotype Threat Analysis/everything.csv')
+
+
+```
+
+
+```{r}
+#X axis
+
+bruce_levels = c(540, 720,	900,	1080,	1260,	1440,	1620,	1800)
+
+
+summary_df = everything_df %>%
+  group_by(Seconds, Cond) %>%
+  summarise(mean = mean(X.axis),
+            sd = sd(X.axis),
+            .groups = "drop") 
+
+ggplot(summary_df) +
+  geom_line(aes(x = Seconds, y = mean), color = "blue") +
+  geom_line(aes(x = Seconds, y = mean + sd), color = "red") + #one sd above the mean
+  geom_line(aes(x = Seconds, y = mean - sd), color = "pink") + #one sd below the mean
+  labs(title = "Mean and Standard Deviation over Time",
+       x = "Seconds",
+       y = "X-axis Values") +
+  theme_minimal() +
+  facet_wrap(~Cond) +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") 
+
+
+
+ggplot(summary_df) +
+  geom_line(aes(x = Seconds, y = mean), color = "blue") +
+  geom_line(aes(x = Seconds, y = mean + sd), color = "red") + #one sd above the mean
+  geom_line(aes(x = Seconds, y = mean - sd), color = "pink") + #one sd below the mean
+  labs(title = "Mean and Standard Deviation over Time",
+       x = "Seconds",
+       y = "X-axis Values") +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") 
+
+
+
+```
+
+
+```{r}
+#Y axis
+
+bruce_levels = c(540, 720,	900,	1080,	1260,	1440,	1620,	1800)
+
+
+summary_df = everything_df %>%
+  group_by(Seconds, Cond) %>%
+  summarise(mean = mean(Y.axis),
+            sd = sd(Y.axis),
+            .groups = "drop") 
+
+ggplot(summary_df) +
+  geom_line(aes(x = Seconds, y = mean), color = "blue") +
+  geom_line(aes(x = Seconds, y = mean + sd), color = "red") + #one sd above the mean
+  geom_line(aes(x = Seconds, y = mean - sd), color = "pink") + #one sd below the mean
+  labs(title = "Mean and Standard Deviation over Time",
+       x = "Seconds",
+       y = "Y-axis Values") +
+  theme_minimal() +
+  facet_wrap(~Cond) +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") 
+
+
+
+ggplot(summary_df) +
+  geom_line(aes(x = Seconds, y = mean), color = "blue") +
+  geom_line(aes(x = Seconds, y = mean + sd), color = "red") + #one sd above the mean
+  geom_line(aes(x = Seconds, y = mean - sd), color = "pink") + #one sd below the mean
+  labs(title = "Mean and Standard Deviation over Time",
+       x = "Seconds",
+       y = "Y-axis Values") +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") 
+```
+
+
+
+
+```{r}
+#Z axis
+
+bruce_levels = c(540, 720,	900,	1080,	1260,	1440,	1620,	1800)
+
+
+summary_df = everything_df %>%
+  group_by(Seconds, Cond) %>%
+  summarise(mean = mean(Z.axis),
+            sd = sd(Z.axis),
+            .groups = "drop") 
+
+ggplot(summary_df) +
+  geom_line(aes(x = Seconds, y = mean), color = "blue") +
+  geom_line(aes(x = Seconds, y = mean + sd), color = "red") + #one sd above the mean
+  geom_line(aes(x = Seconds, y = mean - sd), color = "pink") + #one sd below the mean
+  labs(title = "Mean and Standard Deviation over Time",
+       x = "Seconds",
+       y = "Z-axis Values") +
+  theme_minimal() +
+  facet_wrap(~Cond) +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") 
+
+
+
+ggplot(summary_df) +
+  geom_line(aes(x = Seconds, y = mean), color = "blue") +
+  geom_line(aes(x = Seconds, y = mean + sd), color = "red") + #one sd above the mean
+  geom_line(aes(x = Seconds, y = mean - sd), color = "pink") + #one sd below the mean
+  labs(title = "Mean and Standard Deviation over Time",
+       x = "Seconds",
+       y = "Z-axis Values") +
+  theme_minimal() +
+  geom_vline(xintercept = bruce_levels, color = "black", linetype = "dotted") 
+```
+
+
+
+
+```{r}
+#X Graph
+
+everything_df %>%
+  ggplot(aes(x = Seconds, y = X.axis)) +
+  geom_line(position = position_jitter(width = 0.2), alpha = 0.2, color = "#FFB3BA") +
+  geom_smooth(se = TRUE, linetype = "solid", color = "#FF677D") + 
+  facet_wrap(~Cond) + 
+  labs(title = "Scatter Plot of X.axis by Seconds",
+       x = "Seconds",
+       y = "X.axis") +
+  theme_minimal()
+
+
+#Y Graph
+
+everything_df %>%
+  ggplot(aes(x = Seconds, y = Y.axis)) +
+  geom_point(position = position_jitter(width = 0.2), alpha = 0.2, color = "#FFB3BA") +
+  geom_smooth(se = TRUE, linetype = "solid", color = "#FF677D") + 
+  facet_wrap(~Cond) + 
+  labs(title = "Scatter Plot of Y.axis by Seconds",
+       x = "Seconds",
+       y = "Y.axis") +
+  theme_minimal()
+
+
+
+#Z Graph
+
+everything_df %>%
+  ggplot(aes(x = Seconds, y = Z.axis)) +
+  geom_point(position = position_jitter(width = 0.2), alpha = 0.2, color = "#FFB3BA") +
+  geom_smooth(se = TRUE, linetype = "solid", color = "#FF677D") + 
+  facet_wrap(~Cond) + 
+  labs(title = "Scatter Plot of Z.axis by Seconds",
+       x = "Seconds",
+       y = "Z.axis") +
+  theme_minimal()
+```
+
+everything_df %>%
+  group_by(Cond, ID) %>%
+  ggplot(everything_df, mapping = aes(x = Seconds, y = X.axis, color = Cond)) +
+  geom_point(position = position_jitter(width = 0.2), alpha = 0.5) + 
+  labs(title = "Scatter Plot of X.axis by Seconds",
+       x = "Seconds",
+       y = "X.axis") +
+  theme_minimal()
